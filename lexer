@@ -1,0 +1,60 @@
+import queue
+
+def file_path_to_inst_array(nfa_instruction_filepath):
+    nfa_file = open(nfa_instruction_filepath, "r")
+    p = ""
+    for each in nfa_file:
+        p = p + each 
+    return p.split("\n")
+
+def putinqueue(q, qset, inst_index):
+    if(inst_index not in qset):
+        qset.add(inst_index)
+        q.put(inst_index)
+    return q 
+
+
+def thompsonvm(input_text, nfa_instruction_filepath):
+    instruction_array = file_path_to_inst_array(nfa_instruction_filepath)
+
+    clist = queue.Queue(maxsize=len(instruction_array)) 
+    clistset = set()
+
+    nlist = queue.Queue(maxsize=len(instruction_array)) 
+    nlistset = set()
+
+    clistset.add(0) 
+    putinqueue(clist, clistset, 0)
+
+    char_index = 0
+    while(char_index < len(input_text)):
+        i = 0
+        while(i < len(clistset)):
+            inst_index = clist.get()
+            instruction = instruction_array[inst_index].split(" ")
+            inst_opcode = instruction[1]
+            if(inst_opcode == "char"):
+                if(instruction[2] != ord(input_text[char_index])):
+                    continue 
+                putinqueue(nlist, nlistset, i)
+            elif(inst_opcode == "jump"):
+                putinqueue(clist, clistset, instruction[2])
+            elif(inst_opcode == "match"):
+                return 1
+            elif(inst_opcode == "split"):
+                putinqueue(clist, clistset, instruction[2])
+                putinqueue(clist, clistset, instruction[3])
+
+            i +=1
+
+        clist = nlist
+        clistset = nlistset 
+        nlist = queue.Queue(maxsize=len(instruction_array)) 
+        nlistset = set() 
+
+        char_index +=1
+
+
+thompsonvm("aab", "inputnfa.txt")
+
+
